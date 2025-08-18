@@ -1,18 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:kriolbusiness/features/auth/presentation/pages/auth_page.dart'; // Importe sua AuthPage
 import 'package:kriolbusiness/config/theme/app_colors.dart'; // Importe a classe AppColors centralizada
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:get_it/get_it.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+// Importações das camadas Data e Domain
+import 'package:kriolbusiness/features/auth/data/data_sources/auth_remote_data_source.dart';
+import 'package:kriolbusiness/features/auth/data/repository/auth_repository_impl.dart';
+import 'package:kriolbusiness/features/auth/domain/repository/auth_repository.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/login_usecase.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/register_usecase.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:kriolbusiness/features/auth/presentation/bloc/auth_bloc.dart';
 
-// Se você estiver usando Firebase, descomente as linhas abaixo e certifique-se de ter configurado o Firebase
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:kriolbusiness/firebase_options.dart'; // Gerado pelo flutterfire configure
+
+final GetIt sl = GetIt.instance; // 'sl' é uma convenção para Service Locator
+
+Future<void> setupLocator() async {
+  // Supabase Client
+  await Supabase.initialize(
+    url: 'YOUR_SUPABASE_URL', // Substitua pela sua URL do Supabase
+    anonKey: 'YOUR_SUPABASE_ANON_KEY', // Substitua pela sua chave anon do Supabase
+  );
+  sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
+
+  // Data Layer
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(supabaseClient: sl()),
+  );
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(remoteDataSource: sl(), localDataSource: sl()),
+  );
+
+  // Domain Layer
+  sl.registerLazySingleton(() => LoginUseCase(sl()));
+  sl.registerLazySingleton(() => RegisterUseCase(sl()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
+
+  // Presentation Layer (Bloc)
+  sl.registerFactory(() => AuthBloc(
+        loginUseCase: sl(),
+        registerUseCase: sl(),
+        logoutUseCase: sl(),
+        getCurrentUserUseCase: sl(),
+      ));
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Se você estiver usando Firebase, descomente e ajuste a inicialização abaixo
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
+  // Configurar o localizador de serviços
+  await setupLocator();
 
   runApp(const MyApp());
 }
@@ -53,17 +93,23 @@ class MyApp extends StatelessWidget {
         ),
         // Adicione outras configurações de tema conforme necessário, usando as cores da sua paleta
         inputDecorationTheme: InputDecorationTheme(
-          labelStyle: TextStyle(color: AppColors.airSuperiorityBlue),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(color: AppColors.airSuperiorityBlue.withOpacity(0.5)),
+            filled: true,
+            fillColor: AppColors.prussianBlue.withOpacity(0.5),
+            labelStyle: TextStyle(color: AppColors.airSuperiorityBlue),
+            hintStyle: TextStyle(color: AppColors.airSuperiorityBlue.withOpacity(0.7)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(color: AppColors.airSuperiorityBlue.withOpacity(0.5)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(color: AppColors.airSuperiorityBlue.withOpacity(0.5)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(color: AppColors.fireBrick),
+            ),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(color: AppColors.fireBrick),
-          ),
-          prefixIconColor: AppColors.airSuperiorityBlue,
-        ),
       ),
       home: const AuthPage(), // Define AuthPage como a tela inicial
     );

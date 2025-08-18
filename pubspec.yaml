@@ -65,6 +65,12 @@ dependencies:
   flutter_bloc: ^9.1.1
   # ... outras dependências
   font_awesome_flutter: ^10.6.0 # Verifique a versão mais recente no pub.dev
+  #equatable: Um pacote que facilita a comparação de objetos em Dart, permitindo que você defina quais propriedades devem ser consideradas para igualdade, essencial para otimizar o desempenho em listas e coleções.
+  equatable: ^2.0.5
+  #supabase_flutter: Um pacote que integra o Supabase com o Flutter, permitindo autenticação, armazenamento e consultas em tempo real usando a plataforma Supabase como backend.
+  supabase_flutter: ^2.9.1
+  #dartz
+  dartz: ^0.10.1 # Fornece tipos funcionais como Option e Either, úteis para programação funcional em Dart, especialmente na manipulação de erros e valores opcionais.
 
 dev_dependencies:
   flutter_test:
