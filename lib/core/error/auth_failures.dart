@@ -1,6 +1,5 @@
 // lib/features/auth/domain/failures/auth_failure.dart
 
-import 'package:equatable/equatable.dart';
 import 'package:kriolbusiness/core/error/failures.dart';
 
 class AuthFailure extends Failure {
@@ -24,4 +23,8 @@ class WeakPasswordFailure extends AuthFailure {
 
 class UserNotFoundFailure extends AuthFailure {
   const UserNotFoundFailure([super.message = 'Usuário não encontrado']);
+}
+
+class EmailNotConfirmedFailure extends AuthFailure {
+  const EmailNotConfirmedFailure([super.message = 'Email não confirmado']);
 }

@@ -10,11 +10,11 @@ class ClienteEntity extends Equatable {
   final String? telefone;
   final String? pais;
   final DateTime? dataNascimento;
-  final String createdAt;
-  final String? updatedAt;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
   
   // Composição com UserEntity
-  final UserEntity? user;
+//  final UserEntity? user;
 
   const ClienteEntity({
     required this.id,
@@ -27,12 +27,19 @@ class ClienteEntity extends Equatable {
     this.dataNascimento,
     required this.createdAt,
     this.updatedAt,
-    this.user,
+    //this.user,
   });
 
   @override
   List<Object?> get props => [
     id, authUserId, nome, username, email, telefone, 
-    pais, dataNascimento, createdAt, updatedAt, user
+    pais, dataNascimento, createdAt, updatedAt
   ];
+  
+  get isProfileComplete => null;
+
+  @override
+  String toString() {
+    return 'ClienteEntity(id: $id, nome: $nome, username: $username, email: $email, isComplete: $isProfileComplete)';
+  }
 }

@@ -1,65 +1,102 @@
+// lib/injection_container.dart
+
 import 'package:get_it/get_it.dart';
-import 'package:injectable/injectable.dart';
-import 'package:kriolbusiness/features/auth/data/data_sources/auth_data_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Importações das camadas
-import 'package:kriolbusiness/features/auth/data/data_sources/auth_remote_data_source.dart';
-import 'package:kriolbusiness/features/auth/data/repository/auth_repository_impl.dart';
+// Data Sources
+import 'package:kriolbusiness/features/auth/data/data_sources/auth_remote_datasource.dart';
+import 'package:kriolbusiness/features/auth/data/data_sources/auth_local_datasource.dart';
+// Repository
+import 'package:kriolbusiness/features/auth/data/repository/data_auth_repository_impl.dart';
 import 'package:kriolbusiness/features/auth/domain/repository/auth_repository.dart';
 
-// Use cases
-import 'package:kriolbusiness/features/auth/domain/usecases/register_with_email_password_usecase.dart';
+// Use Cases
+import 'package:kriolbusiness/features/auth/domain/usecases/register_usecase.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/login_usecase.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:kriolbusiness/features/auth/domain/usecases/get_current_user_usecase.dart';
-import 'package:kriolbusiness/features/auth/domain/usecases/create_cliente_profile_usecase.dart';
 
 // BLoC
-import 'package:kriolbusiness/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:kriolbusiness/features/auth/presentation/bloc/presentation_auth_bloc.dart';
 
-final getIt = GetIt.instance;
+final GetIt getIt = GetIt.instance;
 
-@InjectableInit()
-void configureDependencies() => getIt.init();
-
-extension on GetIt {
-  void init() {}
-}
-
+/// Configura todas as dependências da aplicação
 Future<void> setupDependencies() async {
-  // External dependencies
+  // ==========================================
+  // DEPENDÊNCIAS EXTERNAS
+  // ==========================================
+  
+  // SharedPreferences
   final sharedPreferences = await SharedPreferences.getInstance();
   getIt.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
+  
+  // SupabaseClient
   getIt.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
-  // Data Sources
+  // ==========================================
+  // DATA SOURCES
+  // ==========================================
+  
+  // Remote Data Source
   getIt.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(supabaseClient: getIt()),
+    () => AuthRemoteDataSourceImpl(
+      supabaseClient: getIt<SupabaseClient>(),
+    ),
   );
+  
+  // Local Data Source
   getIt.registerLazySingleton<AuthLocalDataSource>(
-    () => AuthLocalDataSourceImpl(sharedPreferences: getIt()),
+    () => AuthLocalDataSourceImpl(
+      sharedPreferences: getIt<SharedPreferences>(),
+    ),
   );
 
-  // Repositories
+  // ==========================================
+  // REPOSITORY
+  // ==========================================
+  
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
-      remoteDataSource: getIt(),
-      localDataSource: getIt(),
+      remoteDataSource: getIt<AuthRemoteDataSource>(),
+      localDataSource: getIt<AuthLocalDataSource>(),
     ),
   );
 
-  // Use Cases
-  getIt.registerLazySingleton(() => RegisterWithEmailPasswordUseCase(getIt()));
-  getIt.registerLazySingleton(() => GetCurrentUserUseCase(getIt()));
-  getIt.registerLazySingleton(() => CreateClienteProfileUseCase(getIt()));
+  // ==========================================
+  // USE CASES
+  // ==========================================
+  
+  getIt.registerLazySingleton<RegisterUseCase>(
+    () => RegisterUseCase(getIt<AuthRepository>()),
+  );
+  
+  getIt.registerLazySingleton<LoginUseCase>(
+    () => LoginUseCase(getIt<AuthRepository>()),
+  );
+  
+  getIt.registerLazySingleton<LogoutUseCase>(
+    () => LogoutUseCase(getIt<AuthRepository>()),
+  );
+  
+  getIt.registerLazySingleton<GetCurrentUserUseCase>(
+    () => GetCurrentUserUseCase(getIt<AuthRepository>()),
+  );
 
-  // BLoCs
-  getIt.registerFactory(
+  // ==========================================
+  // BLOC
+  // ==========================================
+  
+  getIt.registerFactory<AuthBloc>(
     () => AuthBloc(
-      registerUseCase: getIt(),
-      loginUseCase: getIt(),
-      logoutUseCase: getIt(),
-      getCurrentUserUseCase: getIt(),
+      registerUseCase: getIt<RegisterUseCase>(),
+      loginUseCase: getIt<LoginUseCase>(),
+      logoutUseCase: getIt<LogoutUseCase>(),
+      getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
     ),
   );
+
+  print('✅ Dependências configuradas com sucesso');
 }
+

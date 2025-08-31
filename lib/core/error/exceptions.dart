@@ -1,4 +1,4 @@
-// lib/core/errors/exceptions.dart
+
 
 class ServerException implements Exception {
   final String message;
@@ -10,10 +10,11 @@ class ServerException implements Exception {
 
 class AuthException implements Exception {
   final String message;
-  const AuthException(this.message);
+  final String code;
+  const AuthException(this.message, this.code);
 
   @override
-  String toString() => 'AuthException: $message';
+  String toString() => 'AuthException: $message (code: $code)';
 }
 
 class CacheException implements Exception {
@@ -39,3 +40,4 @@ class NetworkException implements Exception {
   @override
   String toString() => 'NetworkException: $message';
 }
+

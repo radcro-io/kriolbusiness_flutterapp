@@ -71,6 +71,8 @@ dependencies:
   supabase_flutter: ^2.9.1
   #dartz
   dartz: ^0.10.1 # Fornece tipos funcionais como Option e Either, úteis para programação funcional em Dart, especialmente na manipulação de erros e valores opcionais.
+  #flutter_dotenv: Um pacote para carregar variáveis de ambiente a partir de arquivos .env no Flutter, facilitando a configuração de ambientes de desenvolvimento, teste e produção sem expor informações sensíveis no código.
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -92,6 +94,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - .env
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

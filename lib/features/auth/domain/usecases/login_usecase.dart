@@ -1,35 +1,22 @@
-// lib/features/auth/domain/usecases/login_usecase.dart
-
+// TODO Implement this library.
+//create usecase to login
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
 import 'package:kriolbusiness/core/error/failures.dart';
-import 'package:kriolbusiness/core/usecases/usecase.dart'; // Você precisará criar esta classe base UseCase
 import 'package:kriolbusiness/features/auth/domain/entities/user_entity.dart';
 import 'package:kriolbusiness/features/auth/domain/repository/auth_repository.dart';
 
-class LoginUseCase implements UseCase<UserEntity, LoginParams> {
+class LoginUseCase {
   final AuthRepository repository;
 
   LoginUseCase(this.repository);
 
-  @override
-  Future<Either<Failure, UserEntity>> call(LoginParams params) async {
+  Future<Either<Failure, UserEntity>> call({
+    required String email,
+    required String password,
+  }) async {
     return await repository.signInWithEmailAndPassword(
-      email: params.email,
-      password: params.password,
+      email: email,
+      password: password,
     );
   }
-}
-
-class LoginParams extends Equatable {
-  final String email;
-  final String password;
-
-  const LoginParams({
-    required this.email,
-    required this.password,
-  });
-
-  @override
-  List<Object> get props => [email, password];
 }
