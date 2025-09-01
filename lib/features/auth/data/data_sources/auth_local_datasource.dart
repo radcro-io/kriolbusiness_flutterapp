@@ -58,7 +58,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
       // Converter JSON para UserModel
       final Map<String, dynamic> jsonMap = json.decode(jsonString);
-      return UserModel.fromMap(jsonMap);
+      return UserModel.fromJson(jsonMap);
     } on FormatException catch (e) {
       // Cache corrompido - limpar e retornar null
       await clearCache();
@@ -72,8 +72,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> cacheUser(UserModel user) async {
     try {
       // Converter UserModel para JSON
-      final jsonString = json.encode(user.toMap());
-      
+      final jsonString = json.encode(user.toJson());
       // Salvar dados do usuário
       await sharedPreferences.setString(_cachedUserKey, jsonString);
       

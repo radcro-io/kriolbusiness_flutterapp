@@ -104,7 +104,7 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Bem-vindo, ${state.user.name ?? state.user.email}!',
+                    'Bem-vindo, ${state.user.nome}!',
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 32),

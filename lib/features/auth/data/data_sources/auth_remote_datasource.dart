@@ -1,5 +1,3 @@
-// TODO Implement this library.// lib/features/auth/data/data_sources/auth_remote_datasource.dart
-
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
 import 'package:kriolbusiness/features/auth/data/models/user_model.dart';
@@ -34,8 +32,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   AuthRemoteDataSourceImpl({required this.supabaseClient});
 
-  
-
   @override
   Future<UserModel> registerWithEmailAndPassword({
     required String email,
@@ -46,7 +42,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       // Preparar metadata do usuário
       Map<String, dynamic>? userData;
-      if (name != null && name.isNotEmpty) {
+      if (name.isNotEmpty) {
         userData = {
           'full_name': name,
           'name': name,
@@ -72,19 +68,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       //criar registro na tabela profiles
       final clientData = {
-        'auth_user_id': userModel.id,
+        'auth_user_id': userModel.authUserId,
         'email': email,
         'nome': name,
         'username': username,
       };
 
-      final clienteResponse = await supabaseClient
+      final _ = await supabaseClient
           .from('cliente')
           .insert(clientData)
           .select()
           .single();
-
-      
 
       // Retornar modelo do usuário
       return UserModel.fromSupabaseUser(response.user!);

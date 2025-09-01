@@ -1,62 +1,48 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:gotrue/src/types/user.dart';
 import 'package:kriolbusiness/features/auth/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   const UserModel({
-    required super.id,
+    required super.authUserId,
     required super.email,
-    super.name,
-    super.username,
-    super.emailConfirmedAt,
-    required super.createdAt,
-    super.updatedAt,
-  });
+    required super.nome,
+    required super.username,
+    super.pais,
+    super.telefone,
+  }) : super();
 
-  factory UserModel.fromSupabaseUser(User user) {
+  factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: user.id,
-      email: user.email ?? '',
-      name: user.userMetadata?['full_name'] as String?,
-      username: user.userMetadata?['username'] as String?,
-      emailConfirmedAt: user.emailConfirmedAt,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      authUserId: json['authUserId'],
+      email: json['email'],
+      nome: json['nome'],
+      username: json['username'],
+      pais: json['pais'],
+      telefone: json['telefone'],
     );
   }
 
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    return UserModel(
-      id: map['id'] as String,
-      email: map['email'] as String,
-      name: map['name'] as String?,
-      username: map['username'] as String?,
-      emailConfirmedAt: map['email_confirmed_at'] as String?,
-      createdAt: map['created_at'] as String,
-      updatedAt: map['updated_at'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
+  @override
+  Map<String, String?> toJson() {
     return {
-      'id': id,
+      'authUserId': authUserId,
       'email': email,
-      'name': name,
+      'nome': nome,
       'username': username,
-      'email_confirmed_at': emailConfirmedAt,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
+      'pais': pais,
+      'telefone': telefone,
     };
   }
 
-  static UserModel fromJson(json) {
+  static UserModel fromSupabaseUser(User user) {
     return UserModel(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      name: json['name'] as String?,
-      username: json['username'] as String?,
-      emailConfirmedAt: json['email_confirmed_at'] as String?,
-      createdAt: json['created_at'] as String,
-      updatedAt: json['updated_at'] as String?,
+      authUserId: user.id,
+      email: user.email ?? '',
+      nome: user.userMetadata?['nome'] ?? '',
+      username: user.userMetadata?['username'] ?? '',
+      pais: user.userMetadata?['pais'],
+      telefone: user.userMetadata?['telefone'],
     );
   }
+
 }
