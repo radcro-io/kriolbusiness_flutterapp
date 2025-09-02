@@ -1,6 +1,7 @@
 // lib/features/auth/presentation/bloc/auth_state.dart
 
 import 'package:equatable/equatable.dart';
+import 'package:kriolbusiness/features/auth/domain/entities/empresa_entity.dart';
 import 'package:kriolbusiness/features/auth/domain/entities/user_entity.dart';
 
 /// Estados do BLoC de autenticação
@@ -40,3 +41,26 @@ class AuthError extends AuthState {
   List<Object> get props => [message];
 }
 
+/// Estado de empresa autenticada
+class EmpresaAuthenticated extends AuthState {
+  final EmpresaEntity empresa;
+
+  const EmpresaAuthenticated({required this.empresa});
+
+  @override
+  List<Object> get props => [empresa];
+}
+
+/// Estado de verificação de username
+class UsernameAvailabilityChecked extends AuthState {
+  final String username;
+  final bool isAvailable;
+
+  const UsernameAvailabilityChecked({
+    required this.username,
+    required this.isAvailable,
+  });
+
+  @override
+  List<Object> get props => [username, isAvailable];
+}

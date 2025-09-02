@@ -2,6 +2,7 @@
 // lib/features/auth/data/data_sources/auth_local_datasource.dart
 
 import 'dart:convert';
+import 'package:kriolbusiness/features/auth/data/models/empresa_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kriolbusiness/core/error/exceptions.dart';
 import 'package:kriolbusiness/features/auth/data/models/user_model.dart';
@@ -22,6 +23,8 @@ abstract class AuthLocalDataSource {
   
   /// Obtém informações básicas do cache (sem dados sensíveis)
   Future<Map<String, dynamic>?> getCacheInfo();
+
+  Future<void> cacheEmpresa(EmpresaModel empresaModel) async {}
 }
 
 /// Implementação do data source local usando SharedPreferences
@@ -222,6 +225,12 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       // Em caso de erro na migração, limpar cache
       await clearCache();
     }
+  }
+  
+  @override
+  Future<void> cacheEmpresa(EmpresaModel empresaModel) {
+    // TODO: implement cacheEmpresa
+    throw UnimplementedError();
   }
 }
 

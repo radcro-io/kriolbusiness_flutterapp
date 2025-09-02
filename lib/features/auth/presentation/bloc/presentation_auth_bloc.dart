@@ -3,6 +3,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kriolbusiness/core/error/auth_failures.dart';
 import 'package:kriolbusiness/core/error/failures.dart';
+import 'package:kriolbusiness/features/auth/domain/repository/auth_repository.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/register_empresa_usecase.dart';
 import 'package:kriolbusiness/features/auth/domain/usecases/register_usecase.dart';
 import 'package:kriolbusiness/features/auth/domain/usecases/login_usecase.dart';
 import 'package:kriolbusiness/features/auth/domain/usecases/logout_usecase.dart';
@@ -16,20 +18,62 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase loginUseCase;
   final LogoutUseCase logoutUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
+  final RegisterEmpresaUseCase registerEmpresaUseCase;
+  // Repositório para verificação de username
+  final AuthRepository authRepository;
 
   AuthBloc({
     required this.registerUseCase,
     required this.loginUseCase,
     required this.logoutUseCase,
     required this.getCurrentUserUseCase,
+    required this.registerEmpresaUseCase,
+    required this.authRepository,
   }) : super(AuthInitial()) {
     // Registrar handlers para cada evento
     on<RegisterRequested>(_onRegisterRequested);
     on<LoginRequested>(_onLoginRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<CheckAuthRequested>(_onCheckAuthRequested);
+    on<RegisterEmpresaRequested>(_onRegisterEmpresaRequested);
+    on<CheckUsernameAvailability>(_onCheckUsernameAvailability);
   }
 
+Future<void> _onRegisterEmpresaRequested(
+    RegisterEmpresaRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final params = RegisterEmpresaParams(
+      nome: event.nome,
+      username: event.username,
+      email: event.email,
+      password: event.password,
+    );
+
+    final result = await registerEmpresaUseCase(params);
+
+    result.fold(
+      (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
+      (empresa) => emit(EmpresaAuthenticated(empresa: empresa)),
+    );
+  }
+
+  Future<void> _onCheckUsernameAvailability(
+    CheckUsernameAvailability event,
+    Emitter<AuthState> emit,
+  ) async {
+    final result = await authRepository.isUsernameAvailable(event.username);
+
+    result.fold(
+      (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
+      (isAvailable) => emit(UsernameAvailabilityChecked(
+        username: event.username,
+        isAvailable: isAvailable,
+      )),
+    );
+  }
   /// Handler para evento de registro
   Future<void> _onRegisterRequested(
     RegisterRequested event,

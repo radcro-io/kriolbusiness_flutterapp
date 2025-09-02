@@ -7,6 +7,7 @@ import 'package:kriolbusiness/core/error/failures.dart';
 import 'package:kriolbusiness/core/error/exceptions.dart';
 import 'package:kriolbusiness/features/auth/data/data_sources/auth_remote_datasource.dart';
 import 'package:kriolbusiness/features/auth/data/data_sources/auth_local_datasource.dart';
+import 'package:kriolbusiness/features/auth/domain/entities/empresa_entity.dart';
 import 'package:kriolbusiness/features/auth/domain/entities/user_entity.dart';
 import 'package:kriolbusiness/features/auth/domain/repository/auth_repository.dart';
 
@@ -50,6 +51,34 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(const NetworkFailure('Sem conexão com a internet'));
     } catch (e) {
       return Left(UnknownFailure('Erro inesperado: ${e.toString()}')); 
+    }
+  }
+
+  @override
+  Future<Either<Failure, EmpresaEntity>> registerEmpresa({
+    required String nome,
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final empresaModel = await remoteDataSource.registerEmpresa(
+        nome: nome,
+        username: username,
+        email: email,
+        password: password,
+      );
+
+      // Cache da empresa localmente
+      await localDataSource.cacheEmpresa(empresaModel);
+
+      return Right(empresaModel);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('Erro inesperado: $e'));
     }
   }
 
@@ -131,6 +160,20 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(const NetworkFailure('Sem conexão com a internet'));
     } catch (e) {
       return Left(UnknownFailure('Erro inesperado: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isUsernameAvailable(String username) async {
+    try {
+      final isAvailable = await remoteDataSource.isUsernameAvailable(username);
+      return Right(isAvailable);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('Erro inesperado: $e'));
     }
   }
 

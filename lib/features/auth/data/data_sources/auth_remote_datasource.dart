@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:kriolbusiness/features/auth/data/models/empresa_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
 import 'package:kriolbusiness/features/auth/data/models/user_model.dart';
 import 'package:kriolbusiness/core/error/exceptions.dart';
@@ -13,6 +14,15 @@ abstract class AuthRemoteDataSource {
     required String username,
   });
 
+  // Novos métodos para empresa
+  Future<EmpresaModel> registerEmpresa({
+    required String nome,
+    required String username,
+    required String email,
+    required String password,
+  });
+
+
   /// Faz login com email e senha
   Future<UserModel> signInWithEmailAndPassword({
     required String email,
@@ -24,6 +34,8 @@ abstract class AuthRemoteDataSource {
 
   /// Obtém o usuário atualmente logado
   Future<UserModel?> getCurrentUser();
+
+  Future<bool> isUsernameAvailable(String username);
 }
 
 /// Implementação do data source remoto usando Supabase
@@ -91,6 +103,95 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw ServerException('Erro de formato de dados: ${e.message}');
     } catch (e) {
       throw ServerException('Erro no servidor durante registro: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<EmpresaModel> registerEmpresa({
+    required String nome,
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      // 1. Verificar se username está disponível
+      final isAvailable = await isUsernameAvailable(username);
+      if (!isAvailable) {
+        throw ServerException('Nome de usuário já está em uso');
+      }
+
+      // 2. Registrar no Supabase Auth
+      final authResponse = await supabaseClient.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'name': nome,
+          'username': username,
+        },
+      );
+
+      if (authResponse.user == null) {
+        throw ServerException('Falha ao criar conta');
+      }
+
+      final user = authResponse.user!;
+
+      // 3. Criar registro na tabela empresas
+      final empresaModel = EmpresaModel.forRegistration(
+        authUserId: user.id,
+        nome: nome,
+        username: username,
+        email: email,
+      );
+
+      final empresaData = await supabaseClient
+          .from('empresas')
+          .insert(empresaModel.toEmpresaInsertMap())
+          .select()
+          .single();
+
+      // 4. Retornar modelo completo
+      return EmpresaModel.fromSupabaseData(
+        userData: {
+          'id': user.id,
+          'email': user.email,
+          'user_metadata': user.userMetadata,
+        },
+        empresaData: empresaData,
+      );
+    } on AuthException catch (e) {
+      throw ServerException(_mapAuthError(e.message));
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') { // Unique constraint violation
+        throw ServerException('Nome de usuário já está em uso');
+      }
+      throw ServerException('Erro no servidor: ${e.message}');
+    } catch (e) {
+      throw ServerException('Erro inesperado: $e');
+    }
+  }
+
+  @override
+  Future<bool> isUsernameAvailable(String username) async {
+    try {
+      // Verificar em ambas as tabelas (clientes e empresas)
+      final clienteResult = await supabaseClient
+          .from('clientes')
+          .select('username')
+          .eq('username', username)
+          .maybeSingle();
+
+      if (clienteResult != null) return false;
+
+      final empresaResult = await supabaseClient
+          .from('empresas')
+          .select('username')
+          .eq('username', username)
+          .maybeSingle();
+
+      return empresaResult == null;
+    } catch (e) {
+      throw ServerException('Erro ao verificar disponibilidade do username');
     }
   }
 
@@ -214,5 +315,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // Retornar exceção original se não conseguir mapear
     return AuthException(e.message, e.code);
   }
+
+  String _mapAuthError(String message) {
+    if (message.contains('email')) {
+      return 'Email já está em uso';
+    } else if (message.contains('password')) {
+      return 'Senha muito fraca';
+    } else if (message.contains('network')) {
+      return 'Erro de conexão';
+    }
+    return message;
+  }
+
+
 }
 

@@ -48,3 +48,31 @@ class LogoutRequested extends AuthEvent {}
 /// Evento para verificar se há usuário logado
 class CheckAuthRequested extends AuthEvent {}
 
+/// Evento para registrar empresa
+class RegisterEmpresaRequested extends AuthEvent {
+  final String nome;
+  final String username;
+  final String email;
+  final String password;
+
+  const RegisterEmpresaRequested({
+    required this.nome,
+    required this.username,
+    required this.email,
+    required this.password,
+  });
+
+  @override
+  List<Object> get props => [nome, username, email, password];
+}
+
+/// Evento para verificar disponibilidade de username
+class CheckUsernameAvailability extends AuthEvent {
+  final String username;
+
+  const CheckUsernameAvailability({required this.username});
+
+  @override
+  List<Object> get props => [username];
+}
+
