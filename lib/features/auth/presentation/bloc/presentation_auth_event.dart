@@ -14,18 +14,18 @@ abstract class AuthEvent extends Equatable {
 class RegisterRequested extends AuthEvent {
   final String email;
   final String password;
-  final String name;
+  final String nome;
   final String username;
 
   const RegisterRequested({
     required this.email,
     required this.password,
-    required this.name,
+    required this.nome,
     required this.username,
   });
 
   @override
-  List<Object> get props => [email, password, name ?? ''];
+  List<Object> get props => [email, password, nome ?? ''];
 }
 
 /// Evento para fazer login
@@ -69,10 +69,13 @@ class RegisterEmpresaRequested extends AuthEvent {
 /// Evento para verificar disponibilidade de username
 class CheckUsernameAvailability extends AuthEvent {
   final String username;
+  final bool isAvailable;
 
-  const CheckUsernameAvailability({required this.username});
+  const CheckUsernameAvailability({required this.username,
+    required this.isAvailable,
+  });
 
   @override
-  List<Object> get props => [username];
+  List<Object> get props => [username, isAvailable];
 }
 

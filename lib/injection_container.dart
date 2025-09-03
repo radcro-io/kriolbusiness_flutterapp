@@ -1,6 +1,8 @@
 // lib/injection_container.dart
 
 import 'package:get_it/get_it.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/is_username_available_usecase.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/register_empresa_usecase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -84,6 +86,14 @@ Future<void> setupDependencies() async {
     () => GetCurrentUserUseCase(getIt<AuthRepository>()),
   );
 
+  getIt.registerLazySingleton<RegisterEmpresaUseCase>(
+    () => RegisterEmpresaUseCase(getIt<AuthRepository>()),
+  );
+
+  getIt.registerLazySingleton<IsUsernameAvailableUseCase>(
+    () => IsUsernameAvailableUseCase(getIt<AuthRepository>()),
+  );
+
   // ==========================================
   // BLOC
   // ==========================================
@@ -94,7 +104,11 @@ Future<void> setupDependencies() async {
       loginUseCase: getIt<LoginUseCase>(),
       logoutUseCase: getIt<LogoutUseCase>(),
       getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
+      registerEmpresaUseCase: getIt<RegisterEmpresaUseCase>(),
+      isUsernameAvailableUseCase: getIt<IsUsernameAvailableUseCase>(
+      
     ),
+  )
   );
 
   print('✅ Dependências configuradas com sucesso');

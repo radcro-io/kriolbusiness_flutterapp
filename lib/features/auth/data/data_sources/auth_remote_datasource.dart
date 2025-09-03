@@ -176,7 +176,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       // Verificar em ambas as tabelas (clientes e empresas)
       final clienteResult = await supabaseClient
-          .from('clientes')
+          .from('cliente')
           .select('username')
           .eq('username', username)
           .maybeSingle();
@@ -184,7 +184,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (clienteResult != null) return false;
 
       final empresaResult = await supabaseClient
-          .from('empresas')
+          .from('empresa')
           .select('username')
           .eq('username', username)
           .maybeSingle();

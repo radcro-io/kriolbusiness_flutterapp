@@ -52,11 +52,11 @@ class EmpresaAuthenticated extends AuthState {
 }
 
 /// Estado de verificação de username
-class UsernameAvailabilityChecked extends AuthState {
+class UsernameAvailable extends AuthState {
   final String username;
   final bool isAvailable;
 
-  const UsernameAvailabilityChecked({
+  const UsernameAvailable({
     required this.username,
     required this.isAvailable,
   });
@@ -64,3 +64,5 @@ class UsernameAvailabilityChecked extends AuthState {
   @override
   List<Object> get props => [username, isAvailable];
 }
+
+

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kriolbusiness/core/error/auth_failures.dart';
 import 'package:kriolbusiness/core/error/failures.dart';
 import 'package:kriolbusiness/features/auth/domain/repository/auth_repository.dart';
+import 'package:kriolbusiness/features/auth/domain/usecases/is_username_available_usecase.dart';
 import 'package:kriolbusiness/features/auth/domain/usecases/register_empresa_usecase.dart';
 import 'package:kriolbusiness/features/auth/domain/usecases/register_usecase.dart';
 import 'package:kriolbusiness/features/auth/domain/usecases/login_usecase.dart';
@@ -19,8 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LogoutUseCase logoutUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
   final RegisterEmpresaUseCase registerEmpresaUseCase;
-  // Repositório para verificação de username
-  final AuthRepository authRepository;
+  final IsUsernameAvailableUseCase isUsernameAvailableUseCase;
 
   AuthBloc({
     required this.registerUseCase,
@@ -28,7 +28,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.logoutUseCase,
     required this.getCurrentUserUseCase,
     required this.registerEmpresaUseCase,
-    required this.authRepository,
+    required this.isUsernameAvailableUseCase,
   }) : super(AuthInitial()) {
     // Registrar handlers para cada evento
     on<RegisterRequested>(_onRegisterRequested);
@@ -64,14 +64,23 @@ Future<void> _onRegisterEmpresaRequested(
     CheckUsernameAvailability event,
     Emitter<AuthState> emit,
   ) async {
-    final result = await authRepository.isUsernameAvailable(event.username);
-
+    final result = await isUsernameAvailableUseCase(event.username);
+    
     result.fold(
       (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
-      (isAvailable) => emit(UsernameAvailabilityChecked(
-        username: event.username,
-        isAvailable: isAvailable,
-      )),
+      (isAvailable) {
+        if (isAvailable) {
+          emit(UsernameAvailable(
+            username: event.username,
+            isAvailable: true,
+          ));
+        } else {
+          emit(UsernameAvailable(
+            username: event.username,
+            isAvailable: false,
+          ));
+        }
+      },
     );
   }
   /// Handler para evento de registro
@@ -84,7 +93,7 @@ Future<void> _onRegisterEmpresaRequested(
     final result = await registerUseCase(
       email: event.email,
       password: event.password,
-      name: event.name,
+      name: event.nome,
       username: event.username,
     );
     print( 'Register result: $result'); // Log do resultado do registro
