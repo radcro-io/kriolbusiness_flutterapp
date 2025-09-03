@@ -1,11 +1,18 @@
-// lib/features/auth/presentation/pages/auth_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kriolbusiness/features/auth/presentation/bloc/presentation_auth_bloc.dart';
 import 'package:kriolbusiness/features/auth/presentation/bloc/presentation_auth_event.dart';
 import 'package:kriolbusiness/features/auth/presentation/bloc/presentation_auth_state.dart';
-import 'package:kriolbusiness/features/auth/presentation/widgets/account_type_selector.dart';
+
+// Enum para tipos de conta (mantendo compatibilidade)
+enum AccountType { 
+  cliente, 
+  empresa;
+  
+  String get label => this == AccountType.cliente ? 'Cliente' : 'Empresa';
+  Color get color => this == AccountType.cliente ? const Color(0xFF1B365D) : const Color(0xFF1B365D);
+  IconData get filledIcon => this == AccountType.cliente ? Icons.person : Icons.business;
+}
 
 /// Página de autenticação moderna com seleção de tipo de conta
 class AuthPage extends StatefulWidget {
@@ -126,9 +133,15 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         _isCheckingUsername = true;
       });
       
-      context.read<AuthBloc>().add(CheckUsernameAvailability(username: username,
-        isAvailable: _isUsernameAvailable,
-      ));
+      // Simular verificação de disponibilidade
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            _isUsernameAvailable = !['admin', 'user', 'test'].contains(username.toLowerCase());
+            _isCheckingUsername = false;
+          });
+        }
+      });
     }
   }
 
@@ -156,18 +169,19 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
       // Registro com tipo de conta
       if (_selectedAccountType == AccountType.cliente) {
         authBloc.add(RegisterRequested(
-          nome: _nameController.text.trim(),
-          username: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+            username: _usernameController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            nome: _nameController.text.trim(),   
         ));
       } else {
         authBloc.add(RegisterEmpresaRequested(
-          nome: _nameController.text.trim(),
-          username: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        ));
+           username: _usernameController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            nome: _nameController.text.trim(),  
+          ),
+        );
       }
     }
   }
@@ -189,9 +203,10 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
   Widget _buildHeader() {
     return Column(
       children: [
-        // Logo/Ícone
+        // Logo/Ícone moderno
         Container(
-          padding: const EdgeInsets.all(20),
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -201,7 +216,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF1B365D).withOpacity(0.3),
@@ -212,7 +227,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
           ),
           child: const Icon(
             Icons.business_center,
-            size: 40,
+            size: 32,
             color: Colors.white,
           ),
         ),
@@ -222,8 +237,9 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         // Título
         Text(
           'KriolBusiness',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          style: TextStyle(
             color: const Color(0xFF1B365D),
+            fontSize: 28,
             fontWeight: FontWeight.bold,
             letterSpacing: -0.5,
           ),
@@ -236,8 +252,9 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
           _isLoginMode 
               ? 'Bem-vindo de volta!' 
               : 'Crie sua conta e comece agora',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          style: TextStyle(
             color: Colors.grey[600],
+            fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -249,15 +266,54 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
     return TextFormField(
       controller: _usernameController,
       onChanged: _checkUsernameAvailability,
+      style: const TextStyle(
+        fontSize: 16,
+        color: Color(0xFF1B365D),
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
         labelText: 'Nome de Usuário',
         hintText: 'Ex: joao_silva',
-        prefixIcon: const Icon(Icons.alternate_email),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+        prefixIcon: Icon(
+          Icons.alternate_email,
+          color: Colors.grey.shade500,
+          size: 20,
+        ),
+        labelStyle: TextStyle(
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.w500,
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF1B365D),
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red.shade400,
+            width: 2,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         helperText: 'Apenas letras, números e underscore',
         suffixIcon: _buildUsernameValidationIcon(),
       ),
@@ -286,8 +342,8 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
 
      if (_usernameController.text.isNotEmpty && _usernameController.text.length < 3) {
       return Icon(
-        _isUsernameAvailable ? Icons.check_circle : Icons.error,
-        color:Colors.red,
+        Icons.error,
+        color: Colors.red,
       );
     }
 
@@ -327,15 +383,54 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
       controller: controller,
       obscureText: obscureText && !(passwordVisible ?? false),
       keyboardType: keyboardType,
+      style: const TextStyle(
+        fontSize: 16,
+        color: Color(0xFF1B365D),
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+        prefixIcon: prefixIcon != null ? Icon(
+          prefixIcon,
+          color: Colors.grey.shade500,
+          size: 20,
+        ) : null,
+        labelStyle: TextStyle(
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.w500,
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF1B365D),
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red.shade400,
+            width: 2,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         suffixIcon: togglePasswordVisibility != null
             ? IconButton(
                 icon: Icon(
@@ -362,8 +457,8 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFB91C1C),
-                const Color(0xFFB91C1C).withOpacity(0.8),
+                const Color(0xFF1B365D),
+                const Color(0xFF1B365D).withOpacity(0.8),
               ],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
@@ -371,7 +466,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFB91C1C).withOpacity(0.3),
+                color: const Color(0xFF1B365D).withOpacity(0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -484,6 +579,107 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildAccountTypeSelector() {
+    return Column(
+      children: [
+        Text(
+          'Escolha o tipo de conta',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF1B365D),
+          ),
+        ),
+        
+        const SizedBox(height: 20),
+        
+        Row(
+          children: [
+            Expanded(
+              child: _buildAccountTypeCard(
+                type: AccountType.cliente,
+                icon: Icons.person_rounded,
+                isSelected: _selectedAccountType == AccountType.cliente,
+              ),
+            ),
+            
+            const SizedBox(width: 16),
+            
+            Expanded(
+              child: _buildAccountTypeCard(
+                type: AccountType.empresa,
+                icon: Icons.business_rounded,
+                isSelected: _selectedAccountType == AccountType.empresa,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccountTypeCard({
+    required AccountType type,
+    required IconData icon,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedAccountType = type;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? const Color(0xFF1B365D) 
+              : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected 
+                ? const Color(0xFF1B365D) 
+                : Colors.grey.shade300,
+            width: 2,
+          ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: const Color(0xFF1B365D).withOpacity(0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ] : null,
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 32,
+              color: isSelected 
+                  ? Colors.white 
+                  : const Color(0xFF1B365D),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            Text(
+              type == AccountType.cliente ? 'Pessoal' : 'Empresa',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isSelected 
+                    ? Colors.white 
+                    : const Color(0xFF1B365D),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -494,14 +690,9 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
             _showSnackBar(state.message, isError: true);
           } else if (state is AuthAuthenticated) {
             _showSnackBar('Conta de cliente criada com sucesso!');
-          } else if (state is EmpresaAuthenticated) {
-            _showSnackBar('Conta de empresa criada com sucesso!');
-          } else if (state is UsernameAvailable) {
-            setState(() {
-              _isUsernameAvailable = state.isAvailable;
-              _isCheckingUsername = false;
-            });
-          }
+          } //else if (state is AuthUnauthenticated) {
+            // Handle registration loading if needed
+          //}
         },
         child: SafeArea(
           child: SlideTransition(
@@ -510,10 +701,15 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24.0),
                 child: Card(
-                  elevation: 8,
+                  elevation: 0,
+                  color: Colors.white,
                   shadowColor: Colors.black.withOpacity(0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),
@@ -533,14 +729,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                               if (!_isLoginMode) ...[
                                 FadeTransition(
                                   opacity: _fadeAnimation,
-                                  child: AccountTypeSelector(
-                                    selectedType: _selectedAccountType,
-                                    onTypeChanged: (type) {
-                                      setState(() {
-                                        _selectedAccountType = type;
-                                      });
-                                    },
-                                  ),
+                                  child: _buildAccountTypeSelector(),
                                 ),
                                 const SizedBox(height: 32),
                               ],
